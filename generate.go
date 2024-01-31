@@ -17,7 +17,7 @@ var Data = genmain.Overlay(
 	genmain.Data{
 		Module: vteModule,
 		Packages: []genmain.Package{
-			{Name: "vte-2.91-gtk4", Namespaces: []string{"Vte-2", "Vte-3"}},
+			{Name: "vte-2.91-gtk4", Namespaces: []string{"Vte-3"}},
 		},
 		PkgGenerated: []string{"vte"},
 	},
