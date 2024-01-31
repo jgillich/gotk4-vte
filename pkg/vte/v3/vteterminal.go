@@ -8,7 +8,6 @@ import (
 	"unsafe"
 
 	"github.com/diamondburned/gotk4/pkg/cairo"
-	"github.com/diamondburned/gotk4/pkg/core/gbox"
 	"github.com/diamondburned/gotk4/pkg/core/gcancel"
 	"github.com/diamondburned/gotk4/pkg/core/gerror"
 	"github.com/diamondburned/gotk4/pkg/core/gextras"
@@ -73,7 +72,6 @@ import (
 // extern void _gotk4_vte3_TerminalClass_child_exited(VteTerminal*, int);
 // extern void _gotk4_vte3_TerminalClass_char_size_changed(VteTerminal*, guint, guint);
 // extern void _gotk4_vte3_TerminalClass_bell(VteTerminal*);
-// extern gboolean _gotk4_vte3_SelectionFunc(VteTerminal*, glong, glong, gpointer);
 // void _gotk4_vte3_Terminal_virtual_bell(void* fnptr, VteTerminal* arg0) {
 //   ((void (*)(VteTerminal*))(fnptr))(arg0);
 // };
@@ -1696,70 +1694,6 @@ func (terminal *Terminal) ScrollbackLines() int32 {
 	return _glong
 }
 
-// Text extracts a view of the visible part of the terminal.
-//
-// This method is unaware of BiDi. The columns returned in attributes are
-// logical columns.
-//
-// Note: since 0.68, passing a non-NULL array parameter is deprecated. Starting
-// with 0.72, passing a non-NULL array parameter will make this function itself
-// return NULL. Since 0.72, passing a non-NULL is_selected parameter will make
-// this function itself return NULL.
-//
-// The function takes the following parameters:
-//
-//   - isSelected (optional) callback. Deprecated: 0.44: Always pass NULL here.
-//
-// The function returns the following values:
-//
-//   - attributes (optional): location for storing text attributes. Deprecated:
-//     0.68: Always pass NULL here.
-//   - utf8 (optional): newly allocated text string, or NULL.
-//
-func (terminal *Terminal) Text(isSelected SelectionFunc) ([]CharAttributes, string) {
-	var _arg0 *C.VteTerminal     // out
-	var _arg1 C.VteSelectionFunc // out
-	var _arg2 C.gpointer
-	var _arg3 C.GArray // in
-	var _cret *C.char  // in
-
-	_arg0 = (*C.VteTerminal)(unsafe.Pointer(coreglib.InternObject(terminal).Native()))
-	if isSelected != nil {
-		_arg1 = (*[0]byte)(C._gotk4_vte3_SelectionFunc)
-		_arg2 = C.gpointer(gbox.Assign(isSelected))
-		defer gbox.Delete(uintptr(_arg2))
-	}
-
-	_cret = C.vte_terminal_get_text(_arg0, _arg1, _arg2, &_arg3)
-	runtime.KeepAlive(terminal)
-	runtime.KeepAlive(isSelected)
-
-	var _attributes []CharAttributes // out
-	var _utf8 string                 // out
-
-	{
-		var len uintptr
-		p := C.g_array_steal(&_arg3, (*C.gsize)(&len))
-		src := unsafe.Slice((*C.GArray)(p), len)
-		_attributes = make([]CharAttributes, len)
-		for i := 0; i < len; i++ {
-			_attributes[i] = *(*CharAttributes)(gextras.NewStructNative(unsafe.Pointer((&src[i]))))
-			runtime.SetFinalizer(
-				gextras.StructIntern(unsafe.Pointer(&_attributes[i])),
-				func(intern *struct{ C unsafe.Pointer }) {
-					C.free(intern.C)
-				},
-			)
-		}
-	}
-	if _cret != nil {
-		_utf8 = C.GoString((*C.gchar)(unsafe.Pointer(_cret)))
-		defer C.free(unsafe.Pointer(_cret))
-	}
-
-	return _attributes, _utf8
-}
-
 // TextBlinkMode checks whether or not the terminal will allow blinking text.
 //
 // The function returns the following values:
@@ -1780,153 +1714,6 @@ func (terminal *Terminal) TextBlinkMode() TextBlinkMode {
 	_textBlinkMode = TextBlinkMode(_cret)
 
 	return _textBlinkMode
-}
-
-// TextIncludeTrailingSpaces extracts a view of the visible part of the
-// terminal.
-//
-// This method is unaware of BiDi. The columns returned in attributes are
-// logical columns.
-//
-// Note: since 0.68, passing a non-NULL array parameter is deprecated. Starting
-// with 0.72, passing a non-NULL array parameter will make this function itself
-// return NULL. Since 0.72, passing a non-NULL is_selected parameter will make
-// this function itself return NULL.
-//
-// Deprecated: Use vte_terminal_get_text() instead.
-//
-// The function takes the following parameters:
-//
-//   - isSelected (optional) callback. Deprecated: 0.44: Always pass NULL here.
-//
-// The function returns the following values:
-//
-//   - attributes (optional): location for storing text attributes. Deprecated:
-//     0.68: Always pass NULL here.
-//   - utf8: newly allocated text string, or NULL.
-//
-func (terminal *Terminal) TextIncludeTrailingSpaces(isSelected SelectionFunc) ([]CharAttributes, string) {
-	var _arg0 *C.VteTerminal     // out
-	var _arg1 C.VteSelectionFunc // out
-	var _arg2 C.gpointer
-	var _arg3 C.GArray // in
-	var _cret *C.char  // in
-
-	_arg0 = (*C.VteTerminal)(unsafe.Pointer(coreglib.InternObject(terminal).Native()))
-	if isSelected != nil {
-		_arg1 = (*[0]byte)(C._gotk4_vte3_SelectionFunc)
-		_arg2 = C.gpointer(gbox.Assign(isSelected))
-		defer gbox.Delete(uintptr(_arg2))
-	}
-
-	_cret = C.vte_terminal_get_text_include_trailing_spaces(_arg0, _arg1, _arg2, &_arg3)
-	runtime.KeepAlive(terminal)
-	runtime.KeepAlive(isSelected)
-
-	var _attributes []CharAttributes // out
-	var _utf8 string                 // out
-
-	{
-		var len uintptr
-		p := C.g_array_steal(&_arg3, (*C.gsize)(&len))
-		src := unsafe.Slice((*C.GArray)(p), len)
-		_attributes = make([]CharAttributes, len)
-		for i := 0; i < len; i++ {
-			_attributes[i] = *(*CharAttributes)(gextras.NewStructNative(unsafe.Pointer((&src[i]))))
-			runtime.SetFinalizer(
-				gextras.StructIntern(unsafe.Pointer(&_attributes[i])),
-				func(intern *struct{ C unsafe.Pointer }) {
-					C.free(intern.C)
-				},
-			)
-		}
-	}
-	_utf8 = C.GoString((*C.gchar)(unsafe.Pointer(_cret)))
-	defer C.free(unsafe.Pointer(_cret))
-
-	return _attributes, _utf8
-}
-
-// TextRange extracts a view of the visible part of the terminal. The entire
-// scrollback buffer is scanned, so it is possible to read the entire contents
-// of the buffer using this function.
-//
-// This method is unaware of BiDi. The columns passed in start_col and end_row,
-// and returned in attributes are logical columns.
-//
-// Since 0.68, passing a non-NULL array parameter is deprecated. Since 0.72,
-// passing a non-NULL array parameter will make this function itself return
-// NULL. Since 0.72, passing a non-NULL is_selected function will make this
-// function itself return NULL.
-//
-// The function takes the following parameters:
-//
-//   - startRow: first row to search for data.
-//   - startCol: first column to search for data.
-//   - endRow: last row to search for data.
-//   - endCol: last column to search for data.
-//   - isSelected (optional) callback. Deprecated: 0.44: Always pass NULL here.
-//
-// The function returns the following values:
-//
-//   - attributes (optional): location for storing text attributes. Deprecated:
-//     0.68: Always pass NULL here.
-//   - utf8 (optional): newly allocated text string, or NULL.
-//
-func (terminal *Terminal) TextRange(startRow, startCol, endRow, endCol int32, isSelected SelectionFunc) ([]CharAttributes, string) {
-	var _arg0 *C.VteTerminal     // out
-	var _arg1 C.glong            // out
-	var _arg2 C.glong            // out
-	var _arg3 C.glong            // out
-	var _arg4 C.glong            // out
-	var _arg5 C.VteSelectionFunc // out
-	var _arg6 C.gpointer
-	var _arg7 C.GArray // in
-	var _cret *C.char  // in
-
-	_arg0 = (*C.VteTerminal)(unsafe.Pointer(coreglib.InternObject(terminal).Native()))
-	_arg1 = C.glong(startRow)
-	_arg2 = C.glong(startCol)
-	_arg3 = C.glong(endRow)
-	_arg4 = C.glong(endCol)
-	if isSelected != nil {
-		_arg5 = (*[0]byte)(C._gotk4_vte3_SelectionFunc)
-		_arg6 = C.gpointer(gbox.Assign(isSelected))
-		defer gbox.Delete(uintptr(_arg6))
-	}
-
-	_cret = C.vte_terminal_get_text_range(_arg0, _arg1, _arg2, _arg3, _arg4, _arg5, _arg6, &_arg7)
-	runtime.KeepAlive(terminal)
-	runtime.KeepAlive(startRow)
-	runtime.KeepAlive(startCol)
-	runtime.KeepAlive(endRow)
-	runtime.KeepAlive(endCol)
-	runtime.KeepAlive(isSelected)
-
-	var _attributes []CharAttributes // out
-	var _utf8 string                 // out
-
-	{
-		var len uintptr
-		p := C.g_array_steal(&_arg7, (*C.gsize)(&len))
-		src := unsafe.Slice((*C.GArray)(p), len)
-		_attributes = make([]CharAttributes, len)
-		for i := 0; i < len; i++ {
-			_attributes[i] = *(*CharAttributes)(gextras.NewStructNative(unsafe.Pointer((&src[i]))))
-			runtime.SetFinalizer(
-				gextras.StructIntern(unsafe.Pointer(&_attributes[i])),
-				func(intern *struct{ C unsafe.Pointer }) {
-					C.free(intern.C)
-				},
-			)
-		}
-	}
-	if _cret != nil {
-		_utf8 = C.GoString((*C.gchar)(unsafe.Pointer(_cret)))
-		defer C.free(unsafe.Pointer(_cret))
-	}
-
-	return _attributes, _utf8
 }
 
 // TextRangeFormat returns the specified range of text in the specified format.
